@@ -38,18 +38,31 @@ $bestsellers = lunora_bestsellers();
       <span></span><span></span><span></span>
     </button>
     <nav class="primary-nav">
-      <a href="#">Shop</a>
-      <a href="#">New In</a>
-      <a href="#" class="active">On Campus</a>
+      <a href="#productGrid" id="navShop" class="active">Shop</a>
+      <a href="#productGrid" id="navNewIn">New In</a>
+      <a href="#campusSection" id="navOnCampus">On Campus</a>
     </nav>
-    <a href="#" class="wordmark">LUNORA</a>
+    <a href="index.php" class="wordmark">LUNORA</a>
     <div class="header-actions">
-      <button class="icon-btn" aria-label="Search" id="searchToggle">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
-      </button>
-      <button class="icon-btn" aria-label="Wishlist">
-        <svg viewBox="0 0 24 24"><path d="M12 20 C6 15 2 11.5 2 7.6 2 4.5 4.4 2 7.4 2 9.2 2 10.8 3 12 4.4 13.2 3 14.8 2 16.6 2 19.6 2 22 4.5 22 7.6 22 11.5 18 15 12 20Z"/></svg>
-      </button>
+      <div class="search-wrap">
+        <button class="icon-btn" aria-label="Search" id="searchToggle" aria-expanded="false">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
+        </button>
+        <div class="search-bar" id="searchBar" hidden>
+          <input type="search" id="searchInput" placeholder="Search bags…" aria-label="Search products">
+          <button type="button" id="searchClear" aria-label="Clear search">&times;</button>
+        </div>
+      </div>
+      <div class="wish-wrap">
+        <button class="icon-btn" aria-label="Wishlist" id="wishToggle" aria-expanded="false">
+          <svg viewBox="0 0 24 24"><path d="M12 20 C6 15 2 11.5 2 7.6 2 4.5 4.4 2 7.4 2 9.2 2 10.8 3 12 4.4 13.2 3 14.8 2 16.6 2 19.6 2 22 4.5 22 7.6 22 11.5 18 15 12 20Z"/></svg>
+          <span class="bag-count" id="wishCount" hidden>0</span>
+        </button>
+        <div class="wish-panel" id="wishPanel" hidden>
+          <div class="wish-panel__head">Wishlist</div>
+          <div class="wish-panel__items" id="wishPanelItems"></div>
+        </div>
+      </div>
       <button class="icon-btn" aria-label="Bag" id="bagToggle">
         <svg viewBox="0 0 24 24"><path d="M6 8h12l1 13H5L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
         <span class="bag-count" id="bagCount">0</span>
@@ -90,35 +103,61 @@ $bestsellers = lunora_bestsellers();
   </section>
 
   <nav class="chip-row" aria-label="Shop by edit">
-    <a class="chip" href="#">
+    <a class="chip" href="#productGrid" data-chip-term="9 to 5">
       <span class="chip-swatch"><img src="images/chips/9to5.jpg" alt="9 to 5 bags"></span>
       9 to 5
     </a>
-    <a class="chip" href="#">
+    <a class="chip" href="#productGrid" data-chip-term="Uni Bags">
       <span class="chip-swatch"><img src="images/chips/uni-bags.jpg" alt="Uni Bags"></span>
       Uni Bags
     </a>
-    <a class="chip" href="#">
+    <a class="chip" href="#productGrid" data-chip-term="Suede">
       <span class="chip-swatch"><img src="images/chips/suede.jpg" alt="Suede bags"></span>
       Suede
     </a>
-    <a class="chip" href="#">
+    <a class="chip" href="#productGrid" data-chip-term="__trending__">
       <span class="chip-swatch"><img src="images/chips/trending-now.jpg" alt="Trending now"></span>
       Trending Now
     </a>
   </nav>
 
-  <nav class="subnav" aria-label="Bag categories">
+  <nav class="subnav" aria-label="Bag categories" id="subnavCategories">
     <?php foreach ($subnav as $i => $item): ?>
-      <a href="#" class="<?= $i === 0 ? 'is-current' : '' ?>"><?= htmlspecialchars($item) ?></a>
+      <a href="#productGrid" data-category="<?= htmlspecialchars($item) ?>" class="<?= $i === 0 ? 'is-current' : '' ?>"><?= htmlspecialchars($item) ?></a>
     <?php endforeach; ?>
   </nav>
 
   <div class="toolbar">
-    <button class="filter-btn" id="filterToggle">
-      <svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="9" cy="7" r="1.6" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="7" cy="17" r="1.6" fill="currentColor" stroke="none"/></svg>
-      Filter
-    </button>
+    <div class="filter-wrap">
+      <button class="filter-btn" id="filterToggle" aria-expanded="false">
+        <svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="9" cy="7" r="1.6" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="7" cy="17" r="1.6" fill="currentColor" stroke="none"/></svg>
+        Filter
+      </button>
+      <div class="filter-panel" id="filterPanel" hidden>
+        <?php $filterCategories = array_values(array_unique(array_filter(array_map(fn($p) => $p['category'], $products)))); sort($filterCategories); ?>
+        <?php if ($filterCategories): ?>
+          <div class="filter-group">
+            <h4>Category</h4>
+            <?php foreach ($filterCategories as $cat): ?>
+              <label class="filter-check"><input type="checkbox" name="filterCategory" value="<?= htmlspecialchars($cat) ?>"> <?= htmlspecialchars($cat) ?></label>
+            <?php endforeach; ?>
+          </div>
+        <?php endif; ?>
+        <div class="filter-group">
+          <h4>Availability</h4>
+          <label class="filter-check"><input type="checkbox" id="filterInStock"> In stock only</label>
+        </div>
+        <div class="filter-group">
+          <h4>Price (US$)</h4>
+          <div class="filter-price-row">
+            <input type="number" id="filterPriceMin" min="0" placeholder="Min">
+            <span>&ndash;</span>
+            <input type="number" id="filterPriceMax" min="0" placeholder="Max">
+          </div>
+        </div>
+        <button type="button" class="filter-clear" id="filterClear">Clear all</button>
+      </div>
+    </div>
     <div class="toolbar-right">
       <label class="sort-select">
         Sort by
@@ -129,13 +168,14 @@ $bestsellers = lunora_bestsellers();
           <option>Newest</option>
         </select>
       </label>
-      <span class="results-count">Showing 1&ndash;<?= count($products) ?> of 453 item(s)</span>
+      <span class="results-count" id="resultsCount">Showing <?= count($products) ?> of <?= count($products) ?> item(s)</span>
     </div>
   </div>
 
   <section class="product-grid" id="productGrid">
+    <p class="no-results" id="noResultsMessage" hidden>No bags match your filters. <button type="button" id="noResultsClear">Clear filters</button></p>
     <?php foreach ($products as $p): $outOfStock = (int)($p['stock'] ?? 0) <= 0; ?>
-      <article class="product-card" data-id="<?= htmlspecialchars($p['id']) ?>" data-price="<?= $p['price'] ?>" data-new="<?= !empty($p['badge']) ? '1' : '0' ?>">
+      <article class="product-card" data-id="<?= htmlspecialchars($p['id']) ?>" data-price="<?= $p['price'] ?>" data-new="<?= !empty($p['badge']) ? '1' : '0' ?>" data-category="<?= htmlspecialchars($p['category']) ?>" data-stock="<?= $outOfStock ? '0' : '1' ?>">
         <div class="product-photo" style="--photo-bg: <?= htmlspecialchars($p['fill']) ?>1a;">
           <?php if (!empty($p['badge'])): ?><span class="badge"><?= htmlspecialchars($p['badge']) ?></span><?php endif; ?>
           <?php if ($outOfStock): ?><span class="badge badge--out">Out of Stock</span><?php endif; ?>
@@ -146,7 +186,7 @@ $bestsellers = lunora_bestsellers();
           <?php if ($outOfStock): ?>
             <button class="quick-add" disabled>Out of Stock</button>
           <?php else: ?>
-            <button class="quick-add" data-add data-id="<?= htmlspecialchars($p['id']) ?>" data-name="<?= htmlspecialchars($p['name']) ?>">+ Quick Add</button>
+            <button class="quick-add" data-add data-id="<?= htmlspecialchars($p['id']) ?>" data-name="<?= htmlspecialchars($p['name']) ?>" data-tones="<?= htmlspecialchars(implode(',', $p['tones'])) ?>">+ Quick Add</button>
           <?php endif; ?>
         </div>
         <div class="swatch-row">
@@ -166,7 +206,7 @@ $bestsellers = lunora_bestsellers();
     <div class="bestseller-layout">
       <div class="bestseller-grid">
         <?php foreach ($bestsellers as $p): $outOfStock = (int)($p['stock'] ?? 0) <= 0; ?>
-          <article class="product-card product-card--compact" data-id="<?= htmlspecialchars($p['id']) ?>">
+          <article class="product-card product-card--compact" data-id="<?= htmlspecialchars($p['id']) ?>" data-price="<?= $p['price'] ?>">
             <div class="product-photo" style="--photo-bg: <?= htmlspecialchars($p['fill']) ?>1a;">
               <?php if ($outOfStock): ?><span class="badge badge--out">Out of Stock</span><?php endif; ?>
               <button class="wish-btn" aria-label="Add to wishlist" data-wish>
@@ -176,7 +216,7 @@ $bestsellers = lunora_bestsellers();
               <?php if ($outOfStock): ?>
                 <button class="quick-add" disabled>Out of Stock</button>
               <?php else: ?>
-                <button class="quick-add" data-add data-id="<?= htmlspecialchars($p['id']) ?>" data-name="<?= htmlspecialchars($p['name']) ?>">+ Quick Add</button>
+                <button class="quick-add" data-add data-id="<?= htmlspecialchars($p['id']) ?>" data-name="<?= htmlspecialchars($p['name']) ?>" data-tones="<?= htmlspecialchars(implode(',', $p['tones'])) ?>">+ Quick Add</button>
               <?php endif; ?>
             </div>
             <h3 class="product-name"><?= htmlspecialchars($p['name']) ?></h3>
@@ -196,7 +236,7 @@ $bestsellers = lunora_bestsellers();
     <p class="brand-band__word">LUNORA</p>
   </section>
 
-  <section class="editorial-strip" aria-label="LUNORA on campus">
+  <section class="editorial-strip" id="campusSection" aria-label="LUNORA on campus">
     <div class="editorial-tile"><img src="images/editorial/tile-1.jpg" alt="LUNORA styled look, powder blue knit"></div>
     <div class="editorial-tile"><img src="images/editorial/tile-2.jpg" alt="LUNORA at a campus event photocall"></div>
     <div class="editorial-tile"><img src="images/editorial/tile-3.jpg" alt="LUNORA styled look, tailored layers"></div>
@@ -286,6 +326,38 @@ $bestsellers = lunora_bestsellers();
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<div class="qa-modal-overlay" id="qaModalOverlay" hidden>
+  <div class="qa-modal" role="dialog" aria-modal="true" aria-labelledby="qaModalTitle">
+    <button type="button" class="qa-modal-close" id="qaModalClose" aria-label="Close">&times;</button>
+    <div class="qa-modal-media" id="qaModalMedia">
+      <img id="qaModalImg" src="" alt="">
+    </div>
+    <div class="qa-modal-body">
+      <h3 id="qaModalTitle"></h3>
+      <p class="qa-modal-price" id="qaModalPrice"></p>
+
+      <div class="qa-modal-colors" id="qaModalColors">
+        <span class="qa-modal-colors__label">Color: <strong id="qaModalColorName"></strong></span>
+        <div class="qa-modal-swatches" id="qaModalSwatches"></div>
+      </div>
+
+      <label class="qa-modal-qty">Quantity
+        <select id="qaModalQty">
+          <?php for ($n = 1; $n <= 8; $n++): ?><option value="<?= $n ?>"><?= $n ?></option><?php endfor; ?>
+        </select>
+      </label>
+
+      <button type="button" class="auth-submit qa-modal-add" id="qaModalAdd">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8h12l1 13H5L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        Add to Bag
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.LUNORA_TONES = <?= json_encode(lunora_tones()) ?>;
+</script>
 <script src="script.js"></script>
 </body>
 </html>

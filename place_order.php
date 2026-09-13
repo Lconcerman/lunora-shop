@@ -46,6 +46,10 @@ $orderItems = [];
 foreach ($cartItems as $item) {
     $qty = max(1, (int) ($item['quantity'] ?? 1));
     $productId = $item['productId'] ?? null;
+    // The color is just a shopper preference picked at Quick Add time —
+    // not something we trust for price/stock, but safe to record on the
+    // order line so it shows up for the customer and in the admin panel.
+    $color = trim((string) ($item['color'] ?? ''));
 
     if ($productId) {
         $product = lunora_get_product((string) $productId);
@@ -55,10 +59,14 @@ foreach ($cartItems as $item) {
         if ((int) $product['stock'] < $qty) {
             lunora_json_fail('"' . $product['name'] . '" only has ' . $product['stock'] . ' in stock.');
         }
+        $variant = $product['variant'];
+        if ($color !== '') {
+            $variant = $variant !== '' ? $variant . ' — ' . $color : $color;
+        }
         $orderItems[] = [
             'product_id' => $product['id'],
             'name'       => $product['name'],
-            'variant'    => $product['variant'],
+            'variant'    => $variant,
             'price'      => (float) $product['price'],
             'qty'        => $qty,
             'image'      => $product['image'],
@@ -69,7 +77,7 @@ foreach ($cartItems as $item) {
         $orderItems[] = [
             'product_id' => null,
             'name'       => (string) ($item['name'] ?? 'Item'),
-            'variant'    => '',
+            'variant'    => $color,
             'price'      => (float) ($item['price'] ?? 0),
             'qty'        => $qty,
             'image'      => (string) ($item['img'] ?? ''),

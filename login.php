@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             lunora_login($user);
             if ($remember) {
-                setcookie(session_name(), session_id(), time() + 30 * 86400, '/');
+                lunora_remember_login($user);
             }
             lunora_flash_set('success', 'Welcome back, ' . explode(' ', $user['full_name'])[0] . '.');
             header('Location: index.php');

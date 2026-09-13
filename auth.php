@@ -8,9 +8,19 @@
 
 require_once __DIR__ . '/db.php';
 
+// These must be defined before lunora_resume_remember_login() runs below —
+// unlike function definitions, top-level const/define statements execute
+// in file order, not hoisted.
+const LUNORA_REMEMBER_COOKIE = 'lunora_remember';
+const LUNORA_REMEMBER_DAYS   = 30;
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+// Re-establish a session from a "remember me" token, if present, before
+// anything on the page checks lunora_current_user().
+lunora_resume_remember_login();
 
 /** All users, oldest first. (Small admin-only helper — not used on hot paths.) */
 function lunora_load_users(): array {
@@ -85,12 +95,104 @@ function lunora_login(array $user): void {
 }
 
 function lunora_logout(): void {
+    lunora_forget_remember_token();
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {
         $p = session_get_cookie_params();
         setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
     }
     session_destroy();
+}
+
+/* ---------------- "Remember me" persistent login ----------------
+ * PHP's session cookie only carries a session ID; the server still
+ * garbage-collects the session data after session.gc_maxlifetime
+ * seconds (~24 minutes by default) regardless of the cookie's
+ * expiry. A long-lived session cookie therefore does NOT keep
+ * anyone logged in. Instead we issue a separate, long-lived
+ * "remember me" token (selector + validator, per Barry Jaspan's
+ * well-known scheme) stored hashed in auth_tokens and use it to
+ * transparently re-establish a session on a later visit.
+ * (LUNORA_REMEMBER_COOKIE / LUNORA_REMEMBER_DAYS are defined up top,
+ * before session_start(), since lunora_resume_remember_login() runs
+ * immediately after it.)
+ */
+
+/** Issue a new remember-me token for $user and set the cookie. */
+function lunora_remember_login(array $user): void {
+    $selector  = bin2hex(random_bytes(9));
+    $validator = bin2hex(random_bytes(32));
+    $expires   = time() + LUNORA_REMEMBER_DAYS * 86400;
+
+    $stmt = lunora_db()->prepare(
+        'INSERT INTO auth_tokens (selector, validator_hash, user_id, expires_at, created_at)
+         VALUES (:selector, :validator_hash, :user_id, :expires_at, :created_at)'
+    );
+    $stmt->execute([
+        'selector'       => $selector,
+        'validator_hash' => hash('sha256', $validator),
+        'user_id'        => $user['id'],
+        'expires_at'     => date('Y-m-d H:i:s', $expires),
+        'created_at'     => date('Y-m-d H:i:s'),
+    ]);
+
+    setcookie(LUNORA_REMEMBER_COOKIE, $selector . ':' . $validator, [
+        'expires'  => $expires,
+        'path'     => '/',
+        'secure'   => !empty($_SERVER['HTTPS']),
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+}
+
+/** Delete the current remember-me token (DB row + cookie), if any. */
+function lunora_forget_remember_token(): void {
+    if (!empty($_COOKIE[LUNORA_REMEMBER_COOKIE])) {
+        [$selector] = array_pad(explode(':', $_COOKIE[LUNORA_REMEMBER_COOKIE], 2), 1, '');
+        if ($selector !== '') {
+            $stmt = lunora_db()->prepare('DELETE FROM auth_tokens WHERE selector = ?');
+            $stmt->execute([$selector]);
+        }
+    }
+    setcookie(LUNORA_REMEMBER_COOKIE, '', time() - 42000, '/');
+}
+
+/**
+ * If there's no active session but a valid remember-me cookie is
+ * present, log the associated user back in and rotate the token
+ * (issuing a fresh selector/validator) so a stolen cookie is only
+ * usable once. Call this early, before lunora_current_user().
+ */
+function lunora_resume_remember_login(): void {
+    if (!empty($_SESSION['user_id']) || empty($_COOKIE[LUNORA_REMEMBER_COOKIE])) {
+        return;
+    }
+
+    $parts = explode(':', $_COOKIE[LUNORA_REMEMBER_COOKIE], 2);
+    if (count($parts) !== 2) {
+        setcookie(LUNORA_REMEMBER_COOKIE, '', time() - 42000, '/');
+        return;
+    }
+    [$selector, $validator] = $parts;
+
+    $stmt = lunora_db()->prepare('SELECT * FROM auth_tokens WHERE selector = ? LIMIT 1');
+    $stmt->execute([$selector]);
+    $token = $stmt->fetch();
+
+    if (!$token || strtotime($token['expires_at']) < time()
+        || !hash_equals($token['validator_hash'], hash('sha256', $validator))) {
+        // Invalid, expired, or mismatched — clear whatever's left so it can't be retried.
+        lunora_db()->prepare('DELETE FROM auth_tokens WHERE selector = ?')->execute([$selector]);
+        setcookie(LUNORA_REMEMBER_COOKIE, '', time() - 42000, '/');
+        return;
+    }
+
+    $user = lunora_find_user_by_id($token['user_id']);
+    lunora_db()->prepare('DELETE FROM auth_tokens WHERE selector = ?')->execute([$selector]);
+    if ($user) {
+        lunora_login($user);
+        lunora_remember_login($user); // rotate: issue a new token for next time
+    }
 }
 
 /* ---------------- CSRF ---------------- */
