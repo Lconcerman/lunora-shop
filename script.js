@@ -170,7 +170,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     localStorage.setItem('lunora_cart', JSON.stringify(cart));
     updateBagCounter();
-    showToast(color ? `${name} (${color}) added to your bag` : `${name} added to your bag`);
+
+    // Gentle one-time nudge for guests: doesn't block adding to the bag,
+    // just lets them know they'll need to log in when they reach checkout.
+    const isGuest = typeof window.LUNORA_LOGGED_IN !== 'undefined' && !window.LUNORA_LOGGED_IN;
+    const nudgeShown = sessionStorage.getItem('lunora_guest_nudge_shown') === '1';
+    if (isGuest && !nudgeShown) {
+      sessionStorage.setItem('lunora_guest_nudge_shown', '1');
+      showToast('Added to your bag — you\'ll need to log in or sign up at checkout.');
+    } else {
+      showToast(color ? `${name} (${color}) added to your bag` : `${name} added to your bag`);
+    }
   }
 
   function openQuickAddModal({ productId, name, price, img, tones }) {

@@ -89,6 +89,32 @@ function lunora_require_admin(string $adminLoginPath = 'login.php'): void {
     }
 }
 
+/**
+ * Guard for pages that require a logged-in customer (e.g. checkout).
+ * Redirects to the login page, passing along the current page as a
+ * "redirect" parameter so the user lands back here after logging in.
+ */
+function lunora_require_login(string $loginPath = 'login.php'): void {
+    if (!lunora_current_user()) {
+        $returnTo = $_SERVER['REQUEST_URI'] ?? '';
+        header('Location: ' . $loginPath . '?redirect=' . urlencode($returnTo));
+        exit;
+    }
+}
+
+/**
+ * Validates a "redirect" target so we only ever send users to a
+ * local page (never an external URL) after login/registration.
+ */
+function lunora_safe_redirect_target(?string $target, string $default = 'index.php'): string {
+    if (!$target) return $default;
+    // Only allow same-site relative paths — no scheme, no "//" host trick.
+    if (preg_match('#^/{0,1}[A-Za-z0-9_\-./]+\.php(\?[A-Za-z0-9_=&%.\-]*)?$#', $target)) {
+        return ltrim($target, '/');
+    }
+    return $default;
+}
+
 function lunora_login(array $user): void {
     session_regenerate_id(true);
     $_SESSION['user_id'] = $user['id'];

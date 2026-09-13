@@ -1,8 +1,10 @@
 <?php
 require_once __DIR__ . '/auth.php';
 
+$redirectTarget = lunora_safe_redirect_target($_GET['redirect'] ?? ($_POST['redirect'] ?? null));
+
 if (lunora_current_user()) {
-    header('Location: index.php');
+    header('Location: ' . $redirectTarget);
     exit;
 }
 
@@ -27,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 lunora_remember_login($user);
             }
             lunora_flash_set('success', 'Welcome back, ' . explode(' ', $user['full_name'])[0] . '.');
-            header('Location: index.php');
+            header('Location: ' . $redirectTarget);
             exit;
         }
     }
@@ -84,6 +86,7 @@ $csrfToken = lunora_csrf_token();
 
       <form class="auth-form" method="post" novalidate>
         <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrfToken) ?>">
+        <input type="hidden" name="redirect" value="<?= htmlspecialchars($redirectTarget) ?>">
 
         <label>Email
           <div class="input-group">
@@ -113,7 +116,7 @@ $csrfToken = lunora_csrf_token();
         <button type="submit" class="auth-submit">Log In</button>
       </form>
 
-      <p class="auth-switch">New to LUNORA? <a href="register.php">Create an account</a></p>
+      <p class="auth-switch">New to LUNORA? <a href="register.php?redirect=<?= urlencode($redirectTarget) ?>">Create an account</a></p>
     </div>
   </div>
 </div>

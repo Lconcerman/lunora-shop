@@ -15,6 +15,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     lunora_json_fail('Invalid request method.', 405);
 }
 
+if (!lunora_current_user()) {
+    lunora_json_fail('Please log in or create an account before checking out.', 401);
+}
+
 $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
 if (!lunora_csrf_check($csrf)) {
     lunora_json_fail('Your session expired — please refresh the page and try again.', 419);

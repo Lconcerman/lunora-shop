@@ -294,6 +294,7 @@ $bestsellers = lunora_bestsellers();
 
 <script>
   window.LUNORA_TONES = <?= json_encode(lunora_tones()) ?>;
+  window.LUNORA_LOGGED_IN = <?= $lunora_user ? 'true' : 'false' ?>;
 </script>
 <script src="script.js"></script>
 </body>

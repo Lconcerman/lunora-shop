@@ -1,10 +1,11 @@
 <?php
 require_once __DIR__ . '/auth.php';
+lunora_require_login('login.php');
 $lunora_user = lunora_current_user();
 
-// Auto-fill user details if logged in
-$email = $lunora_user ? $lunora_user['email'] : '';
-$name = $lunora_user ? $lunora_user['full_name'] : '';
+// Auto-fill user details (always logged in at this point)
+$email = $lunora_user['email'];
+$name = $lunora_user['full_name'];
 $csrfToken = lunora_csrf_token();
 ?>
 <!DOCTYPE html>
