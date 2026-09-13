@@ -69,16 +69,6 @@ CREATE TABLE IF NOT EXISTS order_items (
     CONSTRAINT fk_order_items_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS auth_tokens (
-    selector       VARCHAR(24)   NOT NULL PRIMARY KEY,
-    validator_hash VARCHAR(255)  NOT NULL,
-    user_id        VARCHAR(64)   NOT NULL,
-    expires_at     DATETIME      NOT NULL,
-    created_at     DATETIME      NOT NULL,
-    KEY idx_auth_tokens_user (user_id),
-    CONSTRAINT fk_auth_tokens_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 -- Seed an admin account if you don't run the migration script below.
 -- Password is "Lunora@Admin1" — change it after first login.
 -- INSERT INTO users (id, full_name, email, password_hash, role, created_at) VALUES
