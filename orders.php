@@ -113,8 +113,8 @@ function lunora_create_order(array $data): array {
             "INSERT INTO orders
              (id, user_id, customer_name, customer_email, customer_phone, customer_address,
               payment_method, subtotal, shipping, total, status, carrier, tracking_number,
-              eta, notes, status_history, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 'pending', '', '', '', '', ?, ?)"
+              eta, notes, status_history, status_seen_at, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 'pending', '', '', '', '', ?, ?, ?)"
         );
         $stmt->execute([
             $orderId,
@@ -127,6 +127,7 @@ function lunora_create_order(array $data): array {
             round($subtotal, 2),
             round($subtotal, 2),
             json_encode([['status' => 'pending', 'at' => date('c')]]),
+            $now, // status_seen_at: the customer just placed this themselves, so "pending" isn't a notification-worthy change.
             $now,
         ]);
 
@@ -162,9 +163,11 @@ function lunora_update_order(string $id, array $data): bool {
 
     $status = $existing['status'];
     $statusHistory = $existing['status_history'];
+    $statusChanged = false;
     if (!empty($data['status']) && isset(lunora_order_statuses()[$data['status']]) && $data['status'] !== $status) {
         $status = $data['status'];
         $statusHistory[] = ['status' => $status, 'at' => date('c')];
+        $statusChanged = true;
     }
 
     $carrier        = array_key_exists('carrier', $data) ? trim((string) $data['carrier']) : $existing['tracking']['carrier'];
@@ -172,12 +175,34 @@ function lunora_update_order(string $id, array $data): bool {
     $eta            = array_key_exists('eta', $data) ? trim((string) $data['eta']) : $existing['tracking']['eta'];
     $notes          = array_key_exists('notes', $data) ? trim((string) $data['notes']) : $existing['tracking']['notes'];
 
-    $stmt = lunora_db()->prepare(
-        'UPDATE orders SET status = ?, carrier = ?, tracking_number = ?, eta = ?, notes = ?, status_history = ? WHERE id = ?'
-    );
+    // A real status change (made by the admin) clears status_seen_at, which
+    // is what lights up the notification badge on the customer's account
+    // icon until they visit their order history again.
+    if ($statusChanged) {
+        $stmt = lunora_db()->prepare(
+            'UPDATE orders SET status = ?, carrier = ?, tracking_number = ?, eta = ?, notes = ?, status_history = ?, status_seen_at = NULL WHERE id = ?'
+        );
+    } else {
+        $stmt = lunora_db()->prepare(
+            'UPDATE orders SET status = ?, carrier = ?, tracking_number = ?, eta = ?, notes = ?, status_history = ? WHERE id = ?'
+        );
+    }
     $stmt->execute([$status, $carrier, $trackingNumber, $eta, $notes, json_encode($statusHistory), $id]);
 
     return true;
+}
+
+/** How many of this customer's orders have an unseen status change — drives the account-icon badge. */
+function lunora_count_unseen_status_changes(string $userId): int {
+    $stmt = lunora_db()->prepare('SELECT COUNT(*) FROM orders WHERE user_id = ? AND status_seen_at IS NULL');
+    $stmt->execute([$userId]);
+    return (int) $stmt->fetchColumn();
+}
+
+/** Mark all of this customer's orders as "seen" — call this once they've viewed their order history. */
+function lunora_mark_orders_seen(string $userId): void {
+    $stmt = lunora_db()->prepare('UPDATE orders SET status_seen_at = NOW() WHERE user_id = ? AND status_seen_at IS NULL');
+    $stmt->execute([$userId]);
 }
 
 /** Quick aggregate stats for the admin dashboard. */

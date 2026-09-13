@@ -1,8 +1,11 @@
 <?php
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/products.php';
+require_once __DIR__ . '/reviews.php';
+require_once __DIR__ . '/orders.php';
 $lunora_user = lunora_current_user();
 $lunora_flash = lunora_flash_get();
+$lunora_notif_count = $lunora_user ? lunora_count_unseen_status_changes($lunora_user['id']) : 0;
 /**
  * LUNORA — Women's Bags & Handbags
  * Product data now lives in data/products.json (see products.php) so the
@@ -12,6 +15,19 @@ $lunora_flash = lunora_flash_get();
 $subnav = ['Tote Bags','Shoulder Bags','Top Handle Bags','Crossbody Bags','Hobo Bags','Backpacks','Clutches','Mini Bags','Bucket Bags','Slouchy Bags','Wedding'];
 $products = lunora_products();
 $bestsellers = lunora_bestsellers();
+$ratingSummaries = lunora_get_rating_summaries();
+
+/** Render a product's average-rating line (or "No reviews yet"). */
+function lunora_render_rating_snippet(string $productId, array $ratingSummaries): string {
+    $summary = $ratingSummaries[$productId] ?? null;
+    if (!$summary || $summary['count'] === 0) {
+        return '<p class="product-rating product-rating--empty">No reviews yet</p>';
+    }
+    $full = (int) round($summary['avg']);
+    $stars = str_repeat('&#9733;', $full) . str_repeat('&#9734;', 5 - $full);
+    return '<p class="product-rating"><span class="product-rating__stars">' . $stars . '</span>'
+        . htmlspecialchars((string) $summary['avg']) . ' (' . (int) $summary['count'] . ')</p>';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -67,8 +83,9 @@ $bestsellers = lunora_bestsellers();
         <svg viewBox="0 0 24 24"><path d="M6 8h12l1 13H5L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
         <span class="bag-count" id="bagCount">0</span>
       </button>
-      <a class="icon-btn" aria-label="Account" href="login.php">
+      <a class="icon-btn" aria-label="Account" href="<?= $lunora_user ? 'my-orders.php' : 'login.php' ?>">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+        <?php if ($lunora_notif_count > 0): ?><span class="bag-count"><?= $lunora_notif_count ?></span><?php endif; ?>
       </a>
       <?php if ($lunora_user): ?>
         <span class="account-link">Hi, <?= htmlspecialchars(explode(' ', $lunora_user['full_name'])[0]) ?></span>
@@ -175,7 +192,7 @@ $bestsellers = lunora_bestsellers();
   <section class="product-grid" id="productGrid">
     <p class="no-results" id="noResultsMessage" hidden>No bags match your filters. <button type="button" id="noResultsClear">Clear filters</button></p>
     <?php foreach ($products as $p): $outOfStock = (int)($p['stock'] ?? 0) <= 0; ?>
-      <article class="product-card" data-id="<?= htmlspecialchars($p['id']) ?>" data-price="<?= $p['price'] ?>" data-new="<?= !empty($p['badge']) ? '1' : '0' ?>" data-category="<?= htmlspecialchars($p['category']) ?>" data-stock="<?= $outOfStock ? '0' : '1' ?>">
+      <article class="product-card" data-id="<?= htmlspecialchars($p['id']) ?>" data-price="<?= $p['price'] ?>" data-new="<?= !empty($p['badge']) ? '1' : '0' ?>" data-category="<?= htmlspecialchars($p['category']) ?>" data-stock="<?= $outOfStock ? '0' : '1' ?>" data-rating="<?= htmlspecialchars((string) ($ratingSummaries[$p['id']]['avg'] ?? 0)) ?>" data-rating-count="<?= (int) ($ratingSummaries[$p['id']]['count'] ?? 0) ?>">
         <div class="product-photo" style="--photo-bg: <?= htmlspecialchars($p['fill']) ?>1a;">
           <?php if (!empty($p['badge'])): ?><span class="badge"><?= htmlspecialchars($p['badge']) ?></span><?php endif; ?>
           <?php if ($outOfStock): ?><span class="badge badge--out">Out of Stock</span><?php endif; ?>
@@ -196,6 +213,7 @@ $bestsellers = lunora_bestsellers();
           <?php endforeach; ?>
         </div>
         <h3 class="product-name"><?= htmlspecialchars($p['name']) ?> &ndash; <?= htmlspecialchars($p['variant']) ?></h3>
+        <?= lunora_render_rating_snippet($p['id'], $ratingSummaries) ?>
         <p class="product-price"><?= lunora_price($p['price']) ?></p>
       </article>
     <?php endforeach; ?>
@@ -206,7 +224,7 @@ $bestsellers = lunora_bestsellers();
     <div class="bestseller-layout">
       <div class="bestseller-grid">
         <?php foreach ($bestsellers as $p): $outOfStock = (int)($p['stock'] ?? 0) <= 0; ?>
-          <article class="product-card product-card--compact" data-id="<?= htmlspecialchars($p['id']) ?>" data-price="<?= $p['price'] ?>">
+          <article class="product-card product-card--compact" data-id="<?= htmlspecialchars($p['id']) ?>" data-price="<?= $p['price'] ?>" data-rating="<?= htmlspecialchars((string) ($ratingSummaries[$p['id']]['avg'] ?? 0)) ?>" data-rating-count="<?= (int) ($ratingSummaries[$p['id']]['count'] ?? 0) ?>">
             <div class="product-photo" style="--photo-bg: <?= htmlspecialchars($p['fill']) ?>1a;">
               <?php if ($outOfStock): ?><span class="badge badge--out">Out of Stock</span><?php endif; ?>
               <button class="wish-btn" aria-label="Add to wishlist" data-wish>
@@ -220,6 +238,7 @@ $bestsellers = lunora_bestsellers();
               <?php endif; ?>
             </div>
             <h3 class="product-name"><?= htmlspecialchars($p['name']) ?></h3>
+            <?= lunora_render_rating_snippet($p['id'], $ratingSummaries) ?>
             <p class="product-price"><?= lunora_price($p['price']) ?></p>
           </article>
         <?php endforeach; ?>
@@ -272,6 +291,10 @@ $bestsellers = lunora_bestsellers();
     <div class="qa-modal-body">
       <h3 id="qaModalTitle"></h3>
       <p class="qa-modal-price" id="qaModalPrice"></p>
+      <p class="qa-modal-rating" id="qaModalRating" hidden>
+        <span class="qa-modal-rating__stars" id="qaModalRatingStars"></span>
+        <span id="qaModalRatingText"></span>
+      </p>
 
       <div class="qa-modal-colors" id="qaModalColors">
         <span class="qa-modal-colors__label">Color: <strong id="qaModalColorName"></strong></span>
@@ -288,6 +311,11 @@ $bestsellers = lunora_bestsellers();
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8h12l1 13H5L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
         Add to Bag
       </button>
+
+      <div class="qa-modal-reviews" id="qaModalReviews" hidden>
+        <h4>Customer Reviews</h4>
+        <div id="qaModalReviewsList"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -295,6 +323,7 @@ $bestsellers = lunora_bestsellers();
 <script>
   window.LUNORA_TONES = <?= json_encode(lunora_tones()) ?>;
   window.LUNORA_LOGGED_IN = <?= $lunora_user ? 'true' : 'false' ?>;
+  window.LUNORA_REVIEWS = <?= json_encode(lunora_get_reviews_grouped_by_product()) ?>;
 </script>
 <script src="script.js"></script>
 </body>

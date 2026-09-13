@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS orders (
     eta               VARCHAR(60)   NOT NULL DEFAULT '',
     notes             TEXT          NULL,
     status_history    TEXT          NULL,   -- small JSON-encoded audit log: [{status, at}, ...]
+    status_seen_at    DATETIME      NULL,   -- when the customer last viewed this order's current status; NULL means "unseen change" (drives the account-icon notification badge)
     created_at        DATETIME      NOT NULL,
     KEY idx_orders_user (user_id),
     KEY idx_orders_status (status),
@@ -94,6 +95,26 @@ CREATE TABLE IF NOT EXISTS contact_messages (
     message        TEXT         NOT NULL,
     status         VARCHAR(20)  NOT NULL DEFAULT 'new',
     created_at     DATETIME     NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- One review per (user, product): a customer can only rate a given item
+-- once, but a purchase is required (order_id must be a real order of
+-- theirs that contains this product) — enforced in reviews.php, not just
+-- by this table shape.
+CREATE TABLE IF NOT EXISTS reviews (
+    id           VARCHAR(64)  NOT NULL PRIMARY KEY,
+    product_id   VARCHAR(64)  NOT NULL,
+    user_id      VARCHAR(64)  NOT NULL,
+    order_id     VARCHAR(64)  NOT NULL,
+    rating       TINYINT      NOT NULL,
+    comment      TEXT         NULL,
+    created_at   DATETIME     NOT NULL,
+    UNIQUE KEY uniq_reviews_user_product (user_id, product_id),
+    KEY idx_reviews_product (product_id),
+    CONSTRAINT fk_reviews_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    CONSTRAINT fk_reviews_user    FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE,
+    CONSTRAINT fk_reviews_order   FOREIGN KEY (order_id)   REFERENCES orders(id)   ON DELETE CASCADE,
+    CONSTRAINT chk_reviews_rating CHECK (rating BETWEEN 1 AND 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Seed an admin account if you don't run the migration script below.

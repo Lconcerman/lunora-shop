@@ -1,7 +1,9 @@
 <?php
 require_once __DIR__ . '/auth.php';
 lunora_require_login('login.php');
+require_once __DIR__ . '/orders.php';
 $lunora_user = lunora_current_user();
+$lunora_notif_count = lunora_count_unseen_status_changes($lunora_user['id']);
 
 // Auto-fill user details (always logged in at this point)
 $email = $lunora_user['email'];
@@ -40,8 +42,9 @@ $csrfToken = lunora_csrf_token();
         <svg viewBox="0 0 24 24"><path d="M6 8h12l1 13H5L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
         <span class="bag-count" id="bagCount">0</span>
       </a>
-      <a class="icon-btn" aria-label="Account" href="login.php">
+      <a class="icon-btn" aria-label="Account" href="my-orders.php">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+        <?php if ($lunora_notif_count > 0): ?><span class="bag-count"><?= $lunora_notif_count ?></span><?php endif; ?>
       </a>
       <?php if ($lunora_user): ?>
         <span class="account-link">Hi, <?= htmlspecialchars(explode(' ', $lunora_user['full_name'])[0]) ?></span>
