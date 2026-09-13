@@ -69,6 +69,33 @@ CREATE TABLE IF NOT EXISTS order_items (
     CONSTRAINT fk_order_items_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS auth_tokens (
+    selector       VARCHAR(24)   NOT NULL PRIMARY KEY,
+    validator_hash VARCHAR(255)  NOT NULL,
+    user_id        VARCHAR(64)   NOT NULL,
+    expires_at     DATETIME      NOT NULL,
+    created_at     DATETIME      NOT NULL,
+    KEY idx_auth_tokens_user (user_id),
+    CONSTRAINT fk_auth_tokens_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+    id             INT AUTO_INCREMENT PRIMARY KEY,
+    email          VARCHAR(190) NOT NULL,
+    created_at     DATETIME     NOT NULL,
+    UNIQUE KEY uniq_newsletter_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS contact_messages (
+    id             INT AUTO_INCREMENT PRIMARY KEY,
+    name           VARCHAR(190) NOT NULL,
+    email          VARCHAR(190) NOT NULL,
+    subject        VARCHAR(190) NOT NULL DEFAULT '',
+    message        TEXT         NOT NULL,
+    status         VARCHAR(20)  NOT NULL DEFAULT 'new',
+    created_at     DATETIME     NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Seed an admin account if you don't run the migration script below.
 -- Password is "Lunora@Admin1" — change it after first login.
 -- INSERT INTO users (id, full_name, email, password_hash, role, created_at) VALUES

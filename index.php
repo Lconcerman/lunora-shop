@@ -259,70 +259,7 @@ $bestsellers = lunora_bestsellers();
   </section>
 </main>
 
-<footer class="site-footer">
-  <div class="footer-columns">
-    <div class="footer-col">
-      <h4>Need Help?</h4>
-      <a href="#">Check Order Status</a>
-      <a href="#">FAQ</a>
-      <a href="#">Contact Us</a>
-      <a href="#">Scam Awareness</a>
-      <a href="#">Privilege Membership</a>
-      <a href="#">Shipping &amp; Tracking</a>
-      <a href="#">Returns &amp; Exchanges</a>
-      <a href="#">Size Guide</a>
-      <a href="#">Product Care</a>
-    </div>
-    <div class="footer-col">
-      <h4>About Us</h4>
-      <a href="#">Brand Profile</a>
-      <a href="#">Sustainability</a>
-      <a href="#">Franchising Opportunities</a>
-      <a href="#">Affiliates</a>
-    </div>
-    <div class="footer-col">
-      <h4>Shopping With Us</h4>
-      <a href="#">Store Locator</a>
-      <a href="#">Virtual Store Experience</a>
-      <a href="#">Fashion Guides</a>
-      <a href="#">Promotions</a>
-      <a href="#">UNiDAYS</a>
-      <a href="#">Student Beans</a>
-      <a href="#">Youth &amp; Essential Worker Discount</a>
-      <a href="#">Social Follower Discount</a>
-    </div>
-    <div class="footer-col">
-      <h4>Legal</h4>
-      <a href="#">Terms of Use</a>
-      <a href="#">Privacy Policy</a>
-      <a href="#">Cookies Policy</a>
-    </div>
-    <div class="footer-col">
-      <h4>Be the First to Know</h4>
-      <p style="margin:0; color:rgba(250,247,242,.8);">Enjoy 10% off your first purchase when you subscribe to our newsletter.</p>
-      <form class="subscribe-form" onsubmit="return false;">
-        <input type="email" placeholder="Enter Email" aria-label="Email address">
-        <button type="submit">SUBSCRIBE</button>
-      </form>
-      <p class="subscribe-note">By subscribing, you agree to LUNORA Terms &amp; Conditions and Privacy Policy.</p>
-      <h4 style="margin-top:14px;">Follow Us</h4>
-      <div class="socials">
-        <span title="Facebook">FB</span>
-        <span title="Instagram">IG</span>
-        <span title="X">X</span>
-        <span title="Pinterest">PIN</span>
-        <span title="TikTok">TT</span>
-        <span title="YouTube">YT</span>
-        <span title="Telegram">TG</span>
-        <span title="WhatsApp">WA</span>
-      </div>
-    </div>
-  </div>
-  <div class="footer-base">
-    <span class="wordmark--footer">LUNORA</span>
-    <span>&copy; <?= date('Y') ?> LUNORA. All rights reserved.</span>
-  </div>
-</footer>
+<?php include __DIR__ . '/includes/site_footer.php'; ?>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
