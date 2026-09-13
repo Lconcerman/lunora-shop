@@ -108,9 +108,13 @@ function lunora_require_login(string $loginPath = 'login.php'): void {
  */
 function lunora_safe_redirect_target(?string $target, string $default = 'index.php'): string {
     if (!$target) return $default;
-    // Only allow same-site relative paths — no scheme, no "//" host trick.
-    if (preg_match('#^/{0,1}[A-Za-z0-9_\-./]+\.php(\?[A-Za-z0-9_=&%.\-]*)?$#', $target)) {
-        return ltrim($target, '/');
+    // Only allow same-site absolute paths (starting with a single "/") —
+    // no scheme, no "//" host trick. Keeping the leading slash matters:
+    // stripping it turns this into a relative link, which the browser
+    // then resolves against whatever subfolder the site lives in,
+    // duplicating that folder in the URL.
+    if (preg_match('#^/[A-Za-z0-9_\-./]+\.php(\?[A-Za-z0-9_=&%.\-]*)?$#', $target)) {
+        return $target;
     }
     return $default;
 }
