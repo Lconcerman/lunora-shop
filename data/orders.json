@@ -1,0 +1,40 @@
+[
+    {
+        "id": "o_10BF4EFC",
+        "created_at": "2026-09-12T09:07:38+02:00",
+        "user_id": "u_6aa4fa13a9c7c6.81099274",
+        "customer": {
+            "name": "maxxlife",
+            "email": "JAYSIRFILMS@gmail.com",
+            "phone": "09933915216",
+            "address": "duma"
+        },
+        "payment_method": "card",
+        "items": [
+            {
+                "product_id": null,
+                "name": "Britton Checkered Top Handle Tote Bag",
+                "variant": "",
+                "price": 119,
+                "qty": 1,
+                "image": "http:\/\/localhost\/www.lunora.com\/images\/products\/britton-top-handle-tote-multi.jpg"
+            }
+        ],
+        "subtotal": 119,
+        "shipping": 0,
+        "total": 119,
+        "status": "pending",
+        "tracking": {
+            "carrier": "",
+            "tracking_number": "",
+            "eta": "",
+            "notes": ""
+        },
+        "status_history": [
+            {
+                "status": "pending",
+                "at": "2026-09-12T09:07:38+02:00"
+            }
+        ]
+    }
+]

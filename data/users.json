@@ -1,0 +1,25 @@
+[
+    {
+        "id": "u_6a9eb23f09ef21.76354962",
+        "full_name": "jay moen",
+        "email": "moenjaymatias@gmail.com",
+        "password_hash": "$2y$10$YvwGv0BY1F1oOu3wlOWrteCnR2uPz\/DRBBisIkT7yEId69\/DK51BO",
+        "created_at": "2026-09-07T14:46:55+02:00",
+        "role": "customer"
+    },
+    {
+        "id": "u_admin001",
+        "full_name": "Store Admin",
+        "email": "admin@lunora.local",
+        "password_hash": "$2y$10$9aJtbJk.aapUnPANKqQBq.JUxBMnT7MjRliJQlPf9zNwav3Jm8JXC",
+        "role": "admin",
+        "created_at": "2026-09-10T23:16:07+00:00"
+    },
+    {
+        "id": "u_6aa4fa13a9c7c6.81099274",
+        "full_name": "maxxlife",
+        "email": "JAYSIRFILMS@gmail.com",
+        "password_hash": "$2y$10$t8rY.pYU8ccsvyAB28ZihOHDSkdkdbvZ9uP\/wgpbBbv33EomKoYR2",
+        "created_at": "2026-09-12T09:06:59+02:00"
+    }
+]
