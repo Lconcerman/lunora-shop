@@ -117,8 +117,14 @@ $csrfToken = lunora_csrf_token();
                  alt="<?= htmlspecialchars($item['name']) ?>" class="order-product__img">
             <div class="order-product__info">
                 <span class="order-product__name"><?= htmlspecialchars($item['name']) ?></span>
-                <span class="order-product__qty">Qty: <?= (int) $item['qty'] ?></span>
+                <?php if (!empty($item['variant'])): ?>
+                    <span class="order-product__variant"><?= htmlspecialchars($item['variant']) ?></span>
+                <?php endif; ?>
+                <span class="order-product__meta">
+                    US$<?= number_format((float) $item['price'], 2) ?> &times; <strong><?= (int) $item['qty'] ?></strong>
+                </span>
             </div>
+            <span class="order-product__line-total">US$<?= number_format((float) $item['price'] * (int) $item['qty'], 2) ?></span>
         </div>
     <?php endforeach; ?>
 </div>
