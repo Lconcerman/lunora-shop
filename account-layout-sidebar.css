@@ -1,0 +1,33 @@
+/* ====================================================
+   Account page layout + sticky "Best Seller" sidebar
+   (my-orders.php, profile.php, my-wishlist.php, my-notifications.php)
+   ==================================================== */
+.account-layout{
+  max-width: var(--container); margin: 0 auto; padding: 0 20px 90px;
+  display: flex; align-items: flex-start; gap: 40px;
+}
+.account-layout .info-page__inner{ margin: 0; flex: 1; min-width: 0; }
+.account-layout__aside{ width: 300px; flex-shrink: 0; position: sticky; top: 24px; }
+@media (max-width: 900px){
+  .account-layout{ flex-direction: column; }
+  .account-layout__aside{ position: static; width: 100%; }
+}
+
+.bestseller-card{
+  border: 1px solid var(--stone-line); border-radius: var(--radius); overflow: hidden; background: var(--white);
+}
+.bestseller-card__label{
+  display: block; padding: 10px 16px; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--white); background: var(--leather); font-weight: 600;
+}
+.bestseller-card__img{ width: 100%; aspect-ratio: 1/1; object-fit: contain; background: var(--stone); display: block; }
+.bestseller-card__body{ padding: 16px; }
+.bestseller-card__name{ font-size: 0.95rem; font-weight: 600; margin: 0 0 6px; }
+.bestseller-card__desc{ font-size: 0.82rem; color: var(--ink-soft); line-height: 1.5; margin: 0 0 14px; }
+.bestseller-card__price{ font-size: 0.9rem; font-weight: 700; margin: 0 0 14px; }
+.bestseller-card__cta{
+  display: block; text-align: center; padding: 11px; border-radius: var(--radius);
+  background: var(--ink); color: var(--white); text-decoration: none; font-size: 0.82rem;
+  letter-spacing: 0.03em; text-transform: uppercase; font-weight: 600;
+}
+.bestseller-card__cta:hover{ background: var(--leather); }
