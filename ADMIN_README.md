@@ -11,8 +11,7 @@
 
 Go to `yoursite.com/admin/login.php`.
 
-- **Email:** `admin@lunora.local`
-- **Password:** `Lunora@Admin1`
+
 
 **Please log in and change this password as soon as possible** — there's no in-app "change password" screen yet, so for now do it by editing `data/users.json` directly: replace the `password_hash` value for the admin account with the output of:
 
