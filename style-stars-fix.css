@@ -1,0 +1,43 @@
+/* ====================================================
+   STAR RATING FIX — replace your existing .review-form__stars
+   rules in style.css with everything below.
+   (Leave .order-card__products / .order-product rules as they are —
+   those are unrelated to the star styling.)
+   ==================================================== */
+
+.review-form__stars {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    gap: 4px;
+    border: none;
+    padding: 4px 0 8px;
+    margin: 10px 0;
+}
+.review-form__stars legend {
+    width: 100%;
+    text-align: center;
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #9a9a9a;
+    margin-bottom: 6px;
+}
+.review-form__stars input[type="radio"] {
+    display: none;
+}
+.review-form__stars label {
+    font-size: 2rem;
+    line-height: 1;
+    color: #e3ddd2;
+    cursor: pointer;
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+.review-form__stars label:hover {
+    transform: scale(1.15);
+}
+.review-form__stars input[type="radio"]:checked ~ label,
+.review-form__stars label:hover,
+.review-form__stars label:hover ~ label {
+    color: #c9973f;
+}

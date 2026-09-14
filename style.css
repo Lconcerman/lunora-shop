@@ -946,7 +946,7 @@ img,svg{ display:block; max-width:100%; }
    Generic content pages: info.php, my-orders.php, contact.php
    ============================================================ */
 .info-page{ max-width: var(--container); margin: 0 auto; padding: 48px 20px 90px; }
-.info-page__inner{ max-width: 760px; }
+.info-page__inner{ max-width: 760px; margin: 0 auto; }
 .info-page h1{ font-size: 2rem; margin-bottom: 20px; }
 .info-page__body h3{ font-size: 1.05rem; margin: 26px 0 8px; }
 .info-page__body h3:first-child{ margin-top: 0; }
@@ -1067,3 +1067,139 @@ img,svg{ display:block; max-width:100%; }
 .form-note{ font-size: 0.82rem; margin-top: 14px; }
 .form-note--success{ color: #2B4A24; }
 .form-note--error{ color: #7A2E20; }
+
+/* ====================================================
+   Account dropdown panel (person icon)
+   ==================================================== */
+.account-wrap{ position: relative; display: inline-flex; }
+.account-toggle__avatar{ width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+.account-panel{
+  position: absolute; top: calc(100% + 10px); right: 0; width: 300px;
+  background: var(--white); border: 1px solid var(--stone-line); border-radius: var(--radius);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.14); z-index: 60; overflow: hidden;
+}
+.account-panel__head{ position: relative; background: var(--stone); padding: 20px 20px 16px; }
+.account-panel__close{
+  position: absolute; top: 12px; right: 14px; background: none; border: none;
+  font-size: 1.3rem; line-height: 1; color: var(--ink-soft); cursor: pointer;
+}
+.account-panel__name{ font-size: 1.05rem; font-weight: 700; letter-spacing: 0.02em; }
+.account-panel__badge{
+  display: inline-block; margin-top: 6px; padding: 3px 10px; border-radius: 999px;
+  background: var(--white); border: 1px solid var(--stone-line); font-size: 0.7rem;
+  letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft);
+}
+.account-panel__contact{ font-size: 0.82rem; color: var(--ink-soft); margin-top: 6px; }
+.account-panel__nav{ display: flex; flex-direction: column; padding: 8px 0; }
+.account-panel__nav a{
+  display: flex; align-items: center; gap: 12px; padding: 12px 20px;
+  font-size: 0.9rem; color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--stone-line);
+  position: relative;
+}
+.account-panel__nav a:last-child{ border-bottom: none; }
+.account-panel__nav a:hover{ background: var(--stone); }
+.account-panel__nav svg{ width: 18px; height: 18px; fill: none; stroke: var(--ink-soft); stroke-width: 1.6; flex-shrink: 0; }
+.account-panel__nav-badge{
+  margin-left: auto; background: var(--leather); color: var(--white); font-size: 0.7rem;
+  min-width: 18px; height: 18px; border-radius: 999px; display: flex; align-items: center; justify-content: center; padding: 0 5px;
+}
+.account-panel__logout{ color: var(--ink-soft) !important; font-size: 0.85rem !important; }
+
+/* ====================================================
+   Profile page
+   ==================================================== */
+.profile-photo-block{ display: flex; align-items: center; gap: 20px; margin-bottom: 32px; }
+.profile-photo-block__avatar{
+  width: 84px; height: 84px; border-radius: 50%; background: var(--stone); overflow: hidden;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  border: 1px solid var(--stone-line);
+}
+.profile-photo-block__avatar img{ width: 100%; height: 100%; object-fit: cover; }
+.profile-photo-block__avatar span{ font-size: 2rem; font-weight: 700; color: var(--ink-soft); }
+.profile-photo-block__form{ display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.profile-photo-block__label{
+  border: 1px solid var(--stone-line); border-radius: var(--radius); padding: 8px 16px;
+  font-size: 0.8rem; cursor: pointer; background: var(--white);
+}
+.profile-photo-block__label input{ display: none; }
+.profile-form{ display: flex; flex-direction: column; gap: 16px; max-width: 420px; }
+.profile-form__field{ display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem; color: var(--ink-soft); }
+.profile-form__field input{
+  padding: 11px 14px; border: 1px solid var(--stone-line); border-radius: var(--radius);
+  font-size: 0.92rem; color: var(--ink); font-family: inherit;
+}
+
+/* ====================================================
+   Wishlist page
+   ==================================================== */
+.wishlist-grid{ display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.wishlist-card{
+  position: relative; border: 1px solid var(--stone-line); border-radius: var(--radius);
+  overflow: hidden; background: var(--white);
+}
+.wishlist-card__img{ width: 100%; aspect-ratio: 4/5; object-fit: cover; background: var(--stone); display: block; }
+.wishlist-card__info{ padding: 12px 14px; }
+.wishlist-card__name{ font-size: 0.88rem; font-weight: 600; margin: 0 0 4px; }
+.wishlist-card__price{ font-size: 0.85rem; color: var(--ink-soft); margin: 0; }
+.wishlist-card__stock{ font-size: 0.75rem; color: #7A2E20; margin: 4px 0 0; }
+.wishlist-card__remove{ position: absolute; top: 8px; right: 8px; }
+.wishlist-card__remove button{
+  width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(255,255,255,0.9);
+  font-size: 1.1rem; line-height: 1; cursor: pointer; color: var(--ink-soft);
+}
+.wishlist-card__remove button:hover{ background: var(--white); color: var(--ink); }
+
+/* ====================================================
+   Notifications page
+   ==================================================== */
+.notif-list{ display: flex; flex-direction: column; gap: 2px; }
+.notif-item{
+  display: flex; gap: 12px; padding: 14px 4px; border-bottom: 1px solid var(--stone-line);
+  text-decoration: none; color: inherit;
+}
+.notif-item__dot{ width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; background: transparent; }
+.notif-item--unread .notif-item__dot{ background: var(--leather); }
+.notif-item__title{ font-size: 0.9rem; font-weight: 600; color: var(--ink); }
+.notif-item__message{ font-size: 0.82rem; color: var(--ink-soft); margin-top: 2px; }
+.notif-item__time{ font-size: 0.72rem; color: var(--ink-soft); margin-top: 4px; }
+
+/* ====================================================
+   Account page layout + sticky "Best Seller" sidebar
+   ==================================================== */
+.account-layout{
+  max-width: var(--container); margin: 0 auto; padding: 0 20px 90px;
+  display: flex; align-items: flex-start; gap: 40px;
+}
+.account-layout .info-page__inner{ margin: 0; flex: 1; min-width: 0; }
+.account-layout__aside{ width: 300px; flex-shrink: 0; position: sticky; top: 24px; }
+@media (max-width: 900px){
+  .account-layout{ flex-direction: column; }
+  .account-layout__aside{ position: static; width: 100%; }
+}
+
+.bestseller-card{
+  border: 1px solid var(--stone-line); border-radius: var(--radius); overflow: hidden; background: var(--white);
+}
+.bestseller-card__label{
+  display: block; padding: 10px 16px; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--white); background: var(--leather); font-weight: 600;
+}
+.bestseller-card__img{ width: 100%; aspect-ratio: 1/1; object-fit: contain; background: var(--stone); display: block; }
+.bestseller-card__body{ padding: 16px; }
+.bestseller-card__name{ font-size: 0.95rem; font-weight: 600; margin: 0 0 6px; }
+.bestseller-card__desc{ font-size: 0.82rem; color: var(--ink-soft); line-height: 1.5; margin: 0 0 14px; }
+.bestseller-card__price{ font-size: 0.9rem; font-weight: 700; margin: 0 0 14px; }
+.bestseller-card__cta{
+  display: block; text-align: center; padding: 11px; border-radius: var(--radius);
+  background: var(--ink); color: var(--white); text-decoration: none; font-size: 0.82rem;
+  letter-spacing: 0.03em; text-transform: uppercase; font-weight: 600;
+}
+.bestseller-card__cta:hover{ background: var(--leather); }
+
+/* ====================================================
+   Best Sellers page
+   ==================================================== */
+.bestsellers-page-grid{
+  max-width: var(--container); margin: 0 auto; padding: 40px 20px 90px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px;
+}

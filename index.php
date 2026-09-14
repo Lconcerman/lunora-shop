@@ -3,9 +3,14 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/products.php';
 require_once __DIR__ . '/reviews.php';
 require_once __DIR__ . '/orders.php';
+require_once __DIR__ . '/wishlist.php';
 $lunora_user = lunora_current_user();
 $lunora_flash = lunora_flash_get();
 $lunora_notif_count = $lunora_user ? lunora_count_unseen_status_changes($lunora_user['id']) : 0;
+// Logged-in users' wishlist is server-backed; script.js uses this to seed
+// the client-side wishlist instead of (guest-only) localStorage.
+$lunora_wishlist_ids = $lunora_user ? lunora_wishlist_product_ids($lunora_user['id']) : [];
+$lunora_csrf_token = lunora_csrf_token();
 /**
  * LUNORA — Women's Bags & Handbags
  * Product data now lives in data/products.json (see products.php) so the
@@ -83,14 +88,8 @@ function lunora_render_rating_snippet(string $productId, array $ratingSummaries)
         <svg viewBox="0 0 24 24"><path d="M6 8h12l1 13H5L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
         <span class="bag-count" id="bagCount">0</span>
       </button>
-      <a class="icon-btn" aria-label="Account" href="<?= $lunora_user ? 'my-orders.php' : 'login.php' ?>">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
-        <?php if ($lunora_notif_count > 0): ?><span class="bag-count"><?= $lunora_notif_count ?></span><?php endif; ?>
-      </a>
-      <?php if ($lunora_user): ?>
-        <span class="account-link">Hi, <?= htmlspecialchars(explode(' ', $lunora_user['full_name'])[0]) ?></span>
-        <a class="account-link account-link--logout" href="logout.php">Log Out</a>
-      <?php else: ?>
+      <?php include __DIR__ . '/includes/account_panel.php'; ?>
+      <?php if (!$lunora_user): ?>
         <a class="account-link" href="login.php">Log In</a>
       <?php endif; ?>
       <span class="lang">English</span>
@@ -324,6 +323,8 @@ function lunora_render_rating_snippet(string $productId, array $ratingSummaries)
   window.LUNORA_TONES = <?= json_encode(lunora_tones()) ?>;
   window.LUNORA_LOGGED_IN = <?= $lunora_user ? 'true' : 'false' ?>;
   window.LUNORA_REVIEWS = <?= json_encode(lunora_get_reviews_grouped_by_product()) ?>;
+  window.LUNORA_WISHLIST_IDS = <?= json_encode($lunora_wishlist_ids) ?>;
+  window.LUNORA_CSRF = <?= json_encode($lunora_csrf_token) ?>;
 </script>
 <script src="script.js"></script>
 </body>

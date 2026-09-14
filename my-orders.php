@@ -78,7 +78,7 @@ $csrfToken = lunora_csrf_token();
 <div class="breadcrumb-inner"><a href="index.php">Home</a><span>/</span><span>Check Order Status</span></div>
 </div>
 
-<main class="info-page">
+<main class="account-layout">
 <div class="info-page__inner" style="max-width:820px;">
 <h1>Check Order Status</h1>
 
@@ -167,6 +167,7 @@ $csrfToken = lunora_csrf_token();
 <?php endif; ?>
 
 </div>
+<?php include __DIR__ . '/includes/best_seller_sidebar.php'; ?>
 </main>
 
 <?php include __DIR__ . '/includes/site_footer.php'; ?>

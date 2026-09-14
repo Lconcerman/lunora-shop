@@ -1,0 +1,74 @@
+/* ====================================================
+   Add everything below to the END of your existing style.css
+   ==================================================== */
+
+/* Order item photos on Check Order Status page */
+.order-card__products {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 10px 0;
+}
+.order-product {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #faf8f5;
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+.order-product__img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+.order-product__info {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.85rem;
+}
+.order-product__name {
+    font-weight: 600;
+}
+.order-product__qty {
+    color: #777;
+}
+.order-card__count {
+    font-size: 0.85rem;
+    color: #777;
+    margin: 0 0 6px;
+}
+
+/* Clickable star rating widget (review-form__stars already exists in the HTML,
+   this makes it actually look and behave like clickable stars) */
+.review-form__stars {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 2px;
+    border: none;
+    padding: 0;
+    margin: 8px 0;
+}
+.review-form__stars legend {
+    width: 100%;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+}
+.review-form__stars input[type="radio"] {
+    display: none;
+}
+.review-form__stars label {
+    font-size: 1.6rem;
+    line-height: 1;
+    color: #d8d8d8;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+.review-form__stars input[type="radio"]:checked ~ label,
+.review-form__stars label:hover,
+.review-form__stars label:hover ~ label {
+    color: #e0a800;
+}

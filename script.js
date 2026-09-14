@@ -25,10 +25,37 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
 
   let wishlist = JSON.parse(localStorage.getItem('lunora_wishlist')) || [];
+
+  // Logged-in users: the server (wishlist_items table) is the source of
+  // truth, not localStorage — rebuild `wishlist` from the ids the server
+  // gave us, enriching each with name/price/img by reading the matching
+  // product card already rendered on this page (guests are untouched).
+  if (window.LUNORA_LOGGED_IN && Array.isArray(window.LUNORA_WISHLIST_IDS)) {
+    wishlist = window.LUNORA_WISHLIST_IDS.map((productId) => {
+      const card = document.querySelector(`.product-card[data-id="${productId}"]`);
+      return {
+        productId,
+        name: card ? card.querySelector('.product-name')?.textContent.trim() : productId,
+        price: card ? parseFloat(card.dataset.price || '0') : 0,
+        img: card ? card.querySelector('.product-photo__icon')?.src : '',
+      };
+    });
+  }
+
   const wishCountEl = document.getElementById('wishCount');
   const wishToggle  = document.getElementById('wishToggle');
   const wishPanel   = document.getElementById('wishPanel');
   const wishItemsEl = document.getElementById('wishPanelItems');
+
+  /** For logged-in users, mirror a wishlist add/remove to the server so it's the same on every device. */
+  function syncWishlistToServer(productId) {
+    if (!window.LUNORA_LOGGED_IN || !window.LUNORA_CSRF) return;
+    const body = new URLSearchParams({ csrf: window.LUNORA_CSRF, product_id: productId });
+    fetch('wishlist_toggle.php', { method: 'POST', body }).catch(() => {
+      // Non-fatal: the button already reflects the local state; a failed
+      // sync just means it'll be corrected next time the page loads.
+    });
+  }
 
   function persistWishlist() {
     localStorage.setItem('lunora_wishlist', JSON.stringify(wishlist));
@@ -89,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast(`Added ${name} to wishlist`);
       }
       persistWishlist();
+      syncWishlistToServer(productId);
       updateWishBadge();
       renderWishPanel();
     });
@@ -117,6 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = wishlist[removeIdx];
         wishlist.splice(removeIdx, 1);
         persistWishlist();
+        if (item) syncWishlistToServer(item.productId);
         updateWishBadge();
         renderWishPanel();
         syncWishButtons();
@@ -130,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
           updateBagCounter();
           wishlist.splice(moveIdx, 1);
           persistWishlist();
+          syncWishlistToServer(item.productId);
           updateWishBadge();
           renderWishPanel();
           syncWishButtons();
@@ -153,6 +183,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const qaQty        = document.getElementById('qaModalQty');
   const qaAddBtn     = document.getElementById('qaModalAdd');
   const qaCloseBtn   = document.getElementById('qaModalClose');
+  const qaRating       = document.getElementById('qaModalRating');
+  const qaRatingStars  = document.getElementById('qaModalRatingStars');
+  const qaRatingText   = document.getElementById('qaModalRatingText');
+  const qaReviews      = document.getElementById('qaModalReviews');
+  const qaReviewsList  = document.getElementById('qaModalReviewsList');
   const tonesMap     = window.LUNORA_TONES || {};
 
   let qaPending = null; // { productId, name, price, img, toneKey, toneLabel }
@@ -183,6 +218,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+  }
+
+  function renderStars(rating) {
+    const full = Math.round(rating);
+    return '\u2605'.repeat(full) + '\u2606'.repeat(5 - full);
+  }
+
   function openQuickAddModal({ productId, name, price, img, tones }) {
     qaPending = { productId, name, price, img };
     qaImg.src = img;
@@ -190,6 +236,37 @@ document.addEventListener('DOMContentLoaded', () => {
     qaTitle.textContent = name;
     qaPrice.textContent = `US$${price.toFixed(2)}`;
     if (qaQty) qaQty.value = '1';
+
+    // Rating summary + review list for this product, if any.
+    const reviews = (window.LUNORA_REVIEWS && window.LUNORA_REVIEWS[productId]) || [];
+    if (qaRating && qaRatingStars && qaRatingText) {
+      if (reviews.length) {
+        const avg = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+        qaRatingStars.textContent = renderStars(avg);
+        qaRatingText.textContent = `${avg.toFixed(1)} (${reviews.length} review${reviews.length === 1 ? '' : 's'})`;
+        qaRating.hidden = false;
+      } else {
+        qaRating.hidden = true;
+      }
+    }
+    if (qaReviews && qaReviewsList) {
+      if (reviews.length) {
+        qaReviewsList.innerHTML = reviews.map((r) => `
+          <div class="qa-review">
+            <div class="qa-review__head">
+              <span class="qa-review__name">${escapeHtml(r.name)}</span>
+              <span class="qa-review__stars">${renderStars(r.rating)}</span>
+            </div>
+            ${r.comment ? `<p class="qa-review__comment">${escapeHtml(r.comment)}</p>` : ''}
+            <span class="qa-review__date">${escapeHtml(r.date)}</span>
+          </div>
+        `).join('');
+        qaReviews.hidden = false;
+      } else {
+        qaReviews.hidden = true;
+        qaReviewsList.innerHTML = '';
+      }
+    }
 
     if (tones && tones.length) {
       qaColors.style.display = '';
@@ -659,6 +736,49 @@ document.addEventListener('DOMContentLoaded', () => {
       el.style.opacity = '0';
       el.style.transform = 'translateY(14px)';
       io.observe(el);
+    });
+  }
+
+  // ------------------------------------------------------------
+  // "Rate this item" prompts on the order history page: click the
+  // toggle to reveal the star-rating + comment form for that item.
+  // ------------------------------------------------------------
+  document.querySelectorAll('[data-review-toggle]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const prompt = btn.closest('[data-review-prompt]');
+      const form = prompt.querySelector('[data-review-form]');
+      if (!form) return;
+      const nowHidden = !form.hidden;
+      form.hidden = nowHidden;
+      btn.hidden = !nowHidden;
+    });
+  });
+
+  // ------------------------------------------------------------
+  // Account dropdown panel (person icon) — same open/close pattern
+  // as the wishlist panel above.
+  // ------------------------------------------------------------
+  const accountToggle = document.getElementById('accountToggle');
+  const accountPanel = document.getElementById('accountPanel');
+  const accountPanelClose = document.getElementById('accountPanelClose');
+  if (accountToggle && accountPanel) {
+    accountToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      const isOpen = !accountPanel.hidden;
+      accountPanel.hidden = isOpen;
+      accountToggle.setAttribute('aria-expanded', String(!isOpen));
+    });
+    if (accountPanelClose) {
+      accountPanelClose.addEventListener('click', () => {
+        accountPanel.hidden = true;
+        accountToggle.setAttribute('aria-expanded', 'false');
+      });
+    }
+    document.addEventListener('click', (e) => {
+      if (!accountPanel.hidden && !accountPanel.contains(e.target) && !accountToggle.contains(e.target)) {
+        accountPanel.hidden = true;
+        accountToggle.setAttribute('aria-expanded', 'false');
+      }
     });
   }
 });

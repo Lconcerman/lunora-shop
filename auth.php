@@ -66,6 +66,29 @@ function lunora_create_user(array $data): array {
     return $user;
 }
 
+/**
+ * Update a customer's editable profile fields. Caller (profile.php) is
+ * responsible for checking the new email isn't already taken by someone
+ * else first, via lunora_find_user_by_email().
+ */
+function lunora_update_user_profile(string $userId, array $data): bool {
+    $stmt = lunora_db()->prepare(
+        'UPDATE users SET full_name = ?, email = ?, phone = ? WHERE id = ?'
+    );
+    return $stmt->execute([
+        trim($data['full_name'] ?? ''),
+        strtolower(trim($data['email'] ?? '')),
+        trim($data['phone'] ?? ''),
+        $userId,
+    ]);
+}
+
+/** Store the (already-validated, already-saved-to-disk) profile photo path for a user. */
+function lunora_update_profile_image(string $userId, string $relativePath): bool {
+    $stmt = lunora_db()->prepare('UPDATE users SET profile_image = ? WHERE id = ?');
+    return $stmt->execute([$relativePath, $userId]);
+}
+
 /** Returns the logged-in user's record, or null. */
 function lunora_current_user(): ?array {
     if (empty($_SESSION['user_id'])) return null;

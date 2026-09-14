@@ -9,6 +9,7 @@
  */
 
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/notifications.php';
 
 /** Ordered list of valid order statuses => human label. */
 function lunora_order_statuses(): array {
@@ -188,6 +189,19 @@ function lunora_update_order(string $id, array $data): bool {
         );
     }
     $stmt->execute([$status, $carrier, $trackingNumber, $eta, $notes, json_encode($statusHistory), $id]);
+
+    if ($statusChanged && !empty($existing['user_id'])) {
+        $label = lunora_order_statuses()[$status] ?? ucfirst($status);
+        lunora_create_notification(
+            $existing['user_id'],
+            'order_status',
+            'Order #' . $id . ' is now ' . $label,
+            $status === 'shipped' && $trackingNumber
+                ? ($carrier ?: 'Carrier') . ' tracking #' . $trackingNumber
+                : '',
+            'my-orders.php'
+        );
+    }
 
     return true;
 }

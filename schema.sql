@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS users (
     id             VARCHAR(64)  NOT NULL PRIMARY KEY,
     full_name      VARCHAR(190) NOT NULL,
     email          VARCHAR(190) NOT NULL,
+    phone          VARCHAR(60)  NOT NULL DEFAULT '',
+    profile_image  VARCHAR(255) NOT NULL DEFAULT '',
     password_hash  VARCHAR(255) NOT NULL,
     role           VARCHAR(20)  NOT NULL DEFAULT 'customer',
     created_at     DATETIME     NOT NULL,
@@ -115,6 +117,32 @@ CREATE TABLE IF NOT EXISTS reviews (
     CONSTRAINT fk_reviews_user    FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE,
     CONSTRAINT fk_reviews_order   FOREIGN KEY (order_id)   REFERENCES orders(id)   ON DELETE CASCADE,
     CONSTRAINT chk_reviews_rating CHECK (rating BETWEEN 1 AND 5)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS wishlist_items (
+    id           INT          AUTO_INCREMENT PRIMARY KEY,
+    user_id      VARCHAR(64)  NOT NULL,
+    product_id   VARCHAR(64)  NOT NULL,
+    created_at   DATETIME     NOT NULL,
+    UNIQUE KEY uniq_wishlist_user_product (user_id, product_id),
+    KEY idx_wishlist_user (user_id),
+    CONSTRAINT fk_wishlist_user    FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE,
+    CONSTRAINT fk_wishlist_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- General-purpose account notifications. Order status changes create one of
+-- these automatically (see lunora_update_order() in orders.php).
+CREATE TABLE IF NOT EXISTS notifications (
+    id           INT          AUTO_INCREMENT PRIMARY KEY,
+    user_id      VARCHAR(64)  NOT NULL,
+    type         VARCHAR(40)  NOT NULL DEFAULT 'general',
+    title        VARCHAR(190) NOT NULL,
+    message      VARCHAR(255) NOT NULL DEFAULT '',
+    link         VARCHAR(255) NOT NULL DEFAULT '',
+    is_read      TINYINT(1)   NOT NULL DEFAULT 0,
+    created_at   DATETIME     NOT NULL,
+    KEY idx_notifications_user (user_id),
+    CONSTRAINT fk_notifications_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Seed an admin account if you don't run the migration script below.

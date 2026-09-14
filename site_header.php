@@ -4,6 +4,8 @@
  * The including page must require_once auth.php and set $lunora_user /
  * $lunora_flash before including this, same as index.php does.
  */
+require_once __DIR__ . '/../orders.php';
+$lunora_notif_count = $lunora_user ? lunora_count_unseen_status_changes($lunora_user['id']) : 0;
 ?>
 <div class="promo-bar">Free standard delivery on all orders, no minimum spend this week</div>
 
@@ -39,8 +41,14 @@
         <svg viewBox="0 0 24 24"><path d="M6 8h12l1 13H5L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
         <span class="bag-count" id="bagCount">0</span>
       </a>
-      <?php include __DIR__ . '/account_panel.php'; ?>
-      <?php if (!$lunora_user): ?>
+      <a class="icon-btn" aria-label="Account" href="<?= $lunora_user ? 'my-orders.php' : 'login.php' ?>">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+        <?php if ($lunora_notif_count > 0): ?><span class="bag-count"><?= $lunora_notif_count ?></span><?php endif; ?>
+      </a>
+      <?php if ($lunora_user): ?>
+        <span class="account-link">Hi, <?= htmlspecialchars(explode(' ', $lunora_user['full_name'])[0]) ?></span>
+        <a class="account-link account-link--logout" href="logout.php">Log Out</a>
+      <?php else: ?>
         <a class="account-link" href="login.php">Log In</a>
       <?php endif; ?>
       <span class="lang">English</span>
